@@ -5,6 +5,8 @@ import { useAuth } from '../contexts/AuthContext';
 import { AddToolPage } from './AddToolPage';
 import type { Tool, Enquiry, ToolWithDetails } from '../lib/database.types';
 import { getImageUrl } from '../lib/supabase';
+import { useAnalytics } from '../contexts/AnalyticsContext';
+import { API_BASE } from '../config';
 
 import BlurText from '../components/BlurText';
 
@@ -13,6 +15,7 @@ interface AdminDashboardProps {
 }
 
 export const AdminDashboard = ({ onViewTool }: AdminDashboardProps) => {
+  const { productViews, enquiryClicks, getTotalViews, getConversionRate } = useAnalytics();
   const { owner } = useAuth();
   const [tools, setTools] = useState<ToolWithDetails[]>([]);
   const [enquiries, setEnquiries] = useState<Enquiry[]>([]);
@@ -20,6 +23,9 @@ export const AdminDashboard = ({ onViewTool }: AdminDashboardProps) => {
   const [view, setView] = useState<'list' | 'add' | 'edit'>('list');
   const [editingTool, setEditingTool] = useState<Tool | undefined>();
   const [activeTab, setActiveTab] = useState<'tools' | 'enquiries'>('tools');
+
+  
+
 
   const handleAnimationComplete = () => {
     console.log('Animation completed!');
@@ -89,6 +95,8 @@ export const AdminDashboard = ({ onViewTool }: AdminDashboardProps) => {
 
   const newEnquiriesCount = enquiries.filter((e) => e.status === 'new').length;
 
+  // Use local analytics context values only; backend summary endpoint not available.
+
   if (loading) {
     return (
       <div className="min-h-screen bg-theme-bg flex items-center justify-center">
@@ -119,7 +127,24 @@ export const AdminDashboard = ({ onViewTool }: AdminDashboardProps) => {
             <p className="text-theme-text-muted">
               Welcome back, {owner?.company_name}
             </p>
+            <div className="grid grid-cols-3 gap-4 mt-6 mb-6">
+              <div className="bg-white p-4 rounded-lg shadow">
+                <p className="text-sm text-gray-500">Total Product Views</p>
+                <p className="text-2xl font-bold">{getTotalViews()}</p>
+              </div>
+
+              <div className="bg-white p-4 rounded-lg shadow">
+                <p className="text-sm text-gray-500">Enquiry Clicks</p>
+                <p className="text-2xl font-bold">{enquiryClicks}</p>
+              </div>
+
+              <div className="bg-white p-4 rounded-lg shadow">
+                <p className="text-sm text-gray-500">Conversion Rate</p>
+                <p className="text-2xl font-bold">{getConversionRate()}%</p>
+              </div>
+            </div>
           </div>
+
 
           <div className="bg-theme-surface rounded-lg shadow-sm border border-theme-surface-hover mb-6">
             <div className="flex border-b border-theme-surface-hover">

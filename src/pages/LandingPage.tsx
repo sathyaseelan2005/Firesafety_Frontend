@@ -69,6 +69,7 @@ export const LandingPage = ({ onNavigate }: LandingPageProps) => {
                         <div className="text-4xl font-bold text-theme-text">
                             Kumaran Chemical Dealers in Salt, Acid & Chemicals
                         </div>
+        
                         <p className="text-xl text-theme-text-muted max-w-lg">
                             Your trusted partner for quality chemicals and fire safety solutions!
                         </p>

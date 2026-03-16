@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { API_BASE } from '../config';
 import { useAuth } from '../contexts/AuthContext';
 import {
   Star,
@@ -8,11 +9,14 @@ import { toolsApi } from '../services/api';
 import { ContactModal } from '../components/ContactModal';
 import type { ToolWithDetails } from '../lib/database.types';
 import { getImageUrl } from '../lib/supabase';
+import { useAnalytics } from '../contexts/AnalyticsContext';
 
 interface ToolDetailsProps {
   toolId: string;
   onBack: () => void;
 }
+
+
 
 export const ToolDetails = ({ toolId, onBack }: ToolDetailsProps) => {
   const [tool, setTool] = useState<ToolWithDetails | null>(null);
@@ -24,10 +28,12 @@ export const ToolDetails = ({ toolId, onBack }: ToolDetailsProps) => {
   const [activeModalTab, setActiveModalTab] = useState<'images' | 'videos'>('images');
   const [quantity, setQuantity] = useState(1);
   const { user, userType } = useAuth();
-
+  const { recordProductView } = useAnalytics();
   useEffect(() => {
-    loadTool();
-  }, [toolId]);
+  if (!toolId) return;
+
+  recordProductView(toolId); // ← KEEP STRING ID
+}, [toolId]);
 
   const handleContactClick = () => {
     if (user && userType === 'customer') {

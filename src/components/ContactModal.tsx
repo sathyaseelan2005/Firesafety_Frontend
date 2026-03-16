@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { X, Send, Mail, User, Phone, MessageSquare } from 'lucide-react';
 import { enquiriesApi } from '../services/api';
+import { useAnalytics } from '../contexts/AnalyticsContext';
 
 interface ContactModalProps {
   toolId: string;
@@ -36,6 +37,8 @@ export const ContactModal = ({
     setLoading(true);
     setError(null);
 
+    const { recordEnquiryClick } = useAnalytics();
+
     try {
       const result = await enquiriesApi.submit({
         tool_id: toolId,
@@ -46,6 +49,12 @@ export const ContactModal = ({
       });
 
       setSuccess(true);
+      // update frontend-only analytics for enquiries
+      try {
+        recordEnquiryClick();
+      } catch (err) {
+        if (import.meta.env.DEV) console.error('[analytics] ContactModal recordEnquiryClick error', err);
+      }
 
       if (result.owner_email) {
         const mailtoLink = `mailto:${result.owner_email}?subject=${encodeURIComponent(

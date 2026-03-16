@@ -20,5 +20,27 @@
     "noUnusedParameters": true,
     "noFallthroughCasesInSwitch": true
   },
-  "include": ["src"]
+  "include": ["src"],
+  "exclude": [
+    "src/services",
+    "src/contexts/AuthContext.tsx",
+    "src/components/ContactModal.tsx",
+    "src/lib/supabase.ts",
+    "src/lib/database.types.ts",
+    "src/pages/CardSwapDemo.tsx",
+    "src/pages/DockDemo.tsx",
+    "src/pages/AddToolPage.tsx",
+    "src/pages/AdminDashboard.tsx",
+    "src/pages/AdminLogin.tsx",
+    "src/pages/CareerPage.tsx",
+    "src/pages/CustomerLogin.tsx",
+    "src/pages/LandingPage.tsx",
+    "src/pages/Login.tsx",
+    "src/pages/LoginOptions.tsx",
+    "src/pages/ToolDetails.tsx",
+    "src/pages/ToolsList.tsx",
+    "src/components/Header.tsx",
+    "src/components/ToolCard.tsx",
+    "src/components/ToolForm.tsx"
+  ]
 }

@@ -1,8 +1,11 @@
 import { useState, useEffect } from 'react';
 import { X, Upload, Trash2, Plus, ArrowLeft } from 'lucide-react';
-import { toolsApi, categoriesApi } from '../services/api';
+//import { toolsApi, categoriesApi } from '../services/api';
+import { categoriesApi } from '../services/api';
 import type { Tool, Category } from '../lib/database.types';
 import { useAuth } from '../contexts/AuthContext';
+import { createProduct, uploadProductImage } from "../services/productsApi";
+
 
 interface AddToolPageProps {
     onBack: () => void;
@@ -21,7 +24,7 @@ export const AddToolPage = ({ onBack, onSave, initialTool }: AddToolPageProps) =
         name: initialTool?.name || '',
         description: initialTool?.description || '',
         category_id: initialTool?.category_id || '',
-        images: initialTool?.images || [],
+        images: [] as File[],
         industry_standards: initialTool?.industry_standards || [],
         is_active: initialTool?.is_active ?? true,
         video_url: (initialTool?.specifications as any)?.video_url || '',
@@ -42,7 +45,7 @@ export const AddToolPage = ({ onBack, onSave, initialTool }: AddToolPageProps) =
         }
     };
 
-    const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
         if (!file) return;
 
@@ -56,22 +59,10 @@ export const AddToolPage = ({ onBack, onSave, initialTool }: AddToolPageProps) =
             return;
         }
 
-        try {
-            setUploadingImage(true);
-            setError(null);
-            console.log('Uploading file:', file.name, file.size);
-            const imageUrl = await toolsApi.uploadImage(file);
-            console.log('Upload success:', imageUrl);
-            setFormData({
-                ...formData,
-                images: [...formData.images, imageUrl],
-            });
-        } catch (err) {
-            console.error('Upload failed:', err);
-            setError(err instanceof Error ? err.message : 'Failed to upload image');
-        } finally {
-            setUploadingImage(false);
-        }
+        setFormData({
+            ...formData,
+            images: [...formData.images, file],
+        });
     };
 
     const removeImage = (index: number) => {
@@ -110,23 +101,22 @@ export const AddToolPage = ({ onBack, onSave, initialTool }: AddToolPageProps) =
 
         try {
             // Extract video_url from formData and put it into specifications
-            const { video_url, ...rest } = formData;
-            const toolData = {
-                ...rest,
-                owner_id: owner.id,
-                specifications: {
-                    ...(initialTool?.specifications || {}),
-                    video_url: video_url,
+            const token = localStorage.getItem("admin_token");
+            if (!token) throw new Error("No admin token found");
+
+            const product = await createProduct(
+                {
+                    name: formData.name,
+                    sku: formData.name.replace(/\s+/g, "-").toUpperCase(),
+                    category: String(formData.category_id),
+                    description: formData.description
                 },
-            };
+                token
+            );
 
-            const token = localStorage.getItem('admin_token');
-            if (!token) throw new Error('No admin token found');
-
-            if (initialTool) {
-                await toolsApi.update(initialTool.id, toolData, token);
-            } else {
-                await toolsApi.create(toolData, token);
+            // Upload first image if exists
+            if (formData.images.length > 0) {
+                await uploadProductImage(product.id, formData.images[0], token);
             }
 
             if (onSave) onSave();
@@ -236,7 +226,7 @@ export const AddToolPage = ({ onBack, onSave, initialTool }: AddToolPageProps) =
                                 {formData.images.map((img, idx) => (
                                     <div key={idx} className="relative aspect-square group">
                                         <img
-                                            src={img}
+                                            src={URL.createObjectURL(img)}
                                             alt={`Tool ${idx + 1}`}
                                             className="w-full h-full object-cover rounded-lg border border-theme-surface-hover"
                                         />
